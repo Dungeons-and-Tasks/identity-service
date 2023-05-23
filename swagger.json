@@ -1,0 +1,628 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "GamerBot API",
+		"description": "",
+		"version": "1.0.0"
+	},
+	"tags": [
+		{
+			"name": "users"
+		},
+		{
+			"name": "apps"
+		},
+		{
+			"name": "bans"
+		},
+		{
+			"name": "roles"
+		}
+	],
+	"paths": {
+		"/users/{id}": {
+			"get": {
+				"tags": ["users"],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "ACCOUNT_FOUND",
+									"data": {
+										"id": 1,
+										"email": "naruto@gmail.com",
+										"isActivated": true,
+										"isEmailVerified": false,
+										"createdAt": "2023-04-19T05:05:36.22+05:00",
+										"updatedAt": "2023-04-19T05:05:36.22+05:00",
+										"roleId": 100,
+										"role": {
+											"id": 100,
+											"title": "User",
+											"prefix": "user",
+											"accessLevel": 1,
+											"createdAt": "2023-04-19T05:05:28.874+05:00",
+											"updatedAt": "2023-04-19T05:05:28.874+05:00"
+										},
+										"sessions": [
+											{
+												"id": 1,
+												"userId": 1,
+												"isActive": true,
+												"ip": "::1",
+												"location": "",
+												"userAgent": "PostmanRuntime/7.32.2",
+												"createdAt": "2023-04-19T05:05:44.032+05:00",
+												"updatedAt": "2023-04-19T05:05:44.032+05:00"
+											}
+										],
+										"apps": [
+											{
+												"id": 1,
+												"userId": 1,
+												"title": "App 4",
+												"prefix": "fucking app 1",
+												"description": "группа шиноби, существовавшая за пределами обычной системы скрытых деревень. Aaaaaaaaaaaaah",
+												"isValidated": false,
+												"isActivated": true,
+												"createdAt": "2023-04-19T05:06:03.109+05:00",
+												"updatedAt": "2023-04-19T05:06:03.109+05:00"
+											}
+										]
+									},
+									"success": true
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/sign-up": {
+			"post": {
+				"description": "Регистрация пользователя",
+				"tags": ["users"],
+				"requestBody": {
+					"description": "Данные пользователя",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignUpUser"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Успешно",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "ACCOUNT_REGISTERED",
+									"data": {
+										"id": 1,
+										"email": "naruto@gmail.com",
+										"isActivated": true,
+										"isEmailVerified": false,
+										"createdAt": "2023-04-19T05:05:36.22+05:00",
+										"updatedAt": "2023-04-19T05:05:36.22+05:00",
+										"roleId": 100,
+										"role": {
+											"id": 100,
+											"title": "User",
+											"prefix": "user",
+											"accessLevel": 1,
+											"createdAt": "2023-04-19T05:05:28.874+05:00",
+											"updatedAt": "2023-04-19T05:05:28.874+05:00"
+										}
+									},
+									"success": true
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Некорректные данные",
+						"content": {}
+					}
+				}
+			}
+		},
+		"/users/sign-in": {
+			"post": {
+				"tags": ["users"],
+				"requestBody": {
+					"description": "Данные пользователя",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SingInUser"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "ACCOUNT_AUTHENTICATED",
+									"data": {
+										"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODI0Njc1NDQsImlhdCI6MTY4MTg2Mjc0NCwic3ViIjoxfQ.FW0PMerGG0VJu-3eGZuuCwOAJTcmMryp_1744gN1OtDFTejRdqdp4YIMAhc2M07EwAAand3QDcW0QePs_kOIoRiXFy21ACuC_rapDIhRB-gmUupsEEckbavJMHsHLKWNiKHlS7u0AMCMYsXmCx1DgO0qN09qYtG-h2I_DNPTXvc",
+										"refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODMwNzIzNDQsImlhdCI6MTY4MTg2Mjc0NCwic3ViIjoxfQ.Nq1XsVNSX_AkxkuhFcLMHLoV78Z2VPnUkCL6tF_dRjoLtYtSkyghI3kmxzxs9oSh6TdnVKge1ZHiHs3O6ncYC4fFE5EApv40jHB7KxpDj49gYNAjmxbl4rWntOPE8mOiNfL3bDYMyr5XZwREpGivHrK0_mgxd8yw5i0UZCb89hA"
+									},
+									"success": true
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/refresh": {
+			"post": {
+				"tags": ["users"],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "ACCOUNT_AUTHENTICATED",
+									"data": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODI0Njc1NTQsImlhdCI6MTY4MTg2Mjc1NCwic3ViIjoxfQ.OQbUaRPOBGJILP5EWtwTu4Ow_Z22ty3xIlJ3FUFr1bCn7YygMRSMj5SIkJ9w2mccKcpV1MEKTSuBm3k4R6i5vBFLIYIlMbIFasNdJEuCDF8Ia0VXrYNa9zQD2PR6CFGrXN1RhAUz6vqZxkqunEO7QHaO9cIsdo7t0pZOKu59MKo",
+									"success": true
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/sign-out": {
+			"post": {
+				"tags": ["users"],
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "ACCOUNT_LOGOUT",
+									"data": "bue bue :)",
+									"success": true
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+
+		"/apps/register": {
+			"post": {
+				"description": "Регистрация приложения",
+				"tags": ["apps"],
+				"requestBody": {
+					"description": "Данные приложения",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterApp"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Успешно",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "APP_REGISTERED",
+									"data": {
+										"app": {
+											"id": 1,
+											"userId": 1,
+											"user": {
+												"id": 1,
+												"email": "naruto@gmail.com",
+												"isActivated": true,
+												"isEmailVerified": false,
+												"createdAt": "2023-04-19T05:05:36.22+05:00",
+												"updatedAt": "2023-04-19T05:05:36.22+05:00",
+												"roleId": 100,
+												"role": {
+													"id": 100,
+													"title": "User",
+													"prefix": "user",
+													"accessLevel": 1,
+													"createdAt": "2023-04-19T05:05:28.874+05:00",
+													"updatedAt": "2023-04-19T05:05:28.874+05:00"
+												}
+											},
+											"title": "App 4",
+											"prefix": "fucking app 1",
+											"description": "группа шиноби, существовавшая за пределами обычной системы скрытых деревень. Aaaaaaaaaaaaah",
+											"isValidated": false,
+											"isActivated": true,
+											"createdAt": "2023-04-19T05:06:03.109+05:00",
+											"updatedAt": "2023-04-19T05:06:03.109+05:00"
+										},
+										"clientSecret": "gKrDFGFnMyi1ahYnVuhFupVNYSL8kh"
+									},
+									"success": true
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Некорректные данные",
+						"content": {}
+					}
+				}
+			}
+		},
+		"/apps/authorize": {
+			"post": {
+				"description": "Запрос на авторизацию приложения",
+				"tags": ["apps"],
+				"requestBody": {
+					"description": "Данные приложения",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AuthorizeApp"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Успешно",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "APP_AUTHENTICATED",
+									"data": "Xf1C6SUfPmBq5gL",
+									"success": true
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Некорректные данные",
+						"content": {}
+					}
+				}
+			}
+		},
+		"/apps/sign-in": {
+			"post": {
+				"description": "Аутентификация приложения",
+				"tags": ["apps"],
+				"requestBody": {
+					"description": "Данные приложения",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignInApp"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Успешно",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": "APP_AUTHENTICATED",
+									"data": {
+										"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODI0Njg2NzcsImlhdCI6MTY4MTg2Mzg3Nywic3ViIjo1fQ.bylbpoiT04rdb-kfMbl_-EfzKQvsDYMB4VTwEAVB6bn57Ix9ex8vowvVJndY7AgAqd5W1L0kWmWocGzcj_LrKJr4LtYmssUoItDv6XWHLThzvg1weHTF237zTENBiGavA4CVIZAeFKVIeBgiIPp0x7UQVNgRUxpeDsaxsEp2gZM",
+										"refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODMwNzM0NzcsImlhdCI6MTY4MTg2Mzg3Nywic3ViIjo1fQ.ByhpI2BWU2celmZ0HVQcK7AH2ZSdeewy-si2aPNHa7tzaPN5TpjSG3SoRPGEwbFoO2xtzD_zCHjaVL0srDJMnrb-LVQy0YtNX5DE6C5TgvpJhAGbz-oPsjKA0uF2r0X6B1-RjN8pRBcuXL-Q5CVzfygQbco64I5tABAreWWQomk"
+									},
+									"success": true
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Некорректные данные",
+						"content": {}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"SignUpUser": {
+				"type": "object",
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"login": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"passwordConfirm": {
+						"type": "string"
+					}
+				}
+			},
+			"SingInUser": {
+				"type": "object",
+				"properties": {
+					"login": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				}
+			},
+			"User": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer"
+					},
+					"email": {
+						"type": "string"
+					},
+					"isActivated": {
+						"type": "boolean"
+					},
+					"isEmailVerified": {
+						"type": "boolean"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					},
+					"roleId": {
+						"type": "integer"
+					},
+					"role": {
+						"type": "object",
+						"$ref": "#/components/schemas/Role"
+					},
+					"sessions": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Session"
+						}
+					},
+					"linkedApps": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LinkedApp"
+						}
+					},
+					"apps": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/App"
+						}
+					},
+					"bans": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Ban"
+						}
+					}
+				}
+			},
+			"LinkedApp": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"userId": {
+						"type": "number"
+					},
+					"user": {
+						"type": "object",
+						"$ref": "#/components/schemas/User"
+					},
+					"appId": {
+						"type": "number"
+					},
+					"app": {
+						"type": "object",
+						"$ref": "#/components/schemas/App"
+					},
+					"isActive": {
+						"type": "boolean"
+					},
+					"createdAt": {
+						"type": "string"
+					}
+				}
+			},
+			"RegisterApp": {
+				"type": "object",
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"prefix": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				}
+			},
+			"AuthorizeApp": {
+				"type": "object",
+				"properties": {
+					"responseType": {
+						"type": "string"
+					},
+					"clientId": {
+						"type": "number"
+					},
+					"scope": {
+						"type": "string"
+					}
+				}
+			},
+			"SignInApp": {
+				"type": "object",
+				"properties": {
+					"grantType": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					},
+					"clientSecret": {
+						"type": "string"
+					}
+				}
+			},
+			"App": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"userId": {
+						"type": "number"
+					},
+					"user": {
+						"type": "object",
+						"$ref": "#/components/schemas/User"
+					},
+					"title": {
+						"type": "string"
+					},
+					"prefix": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"isValidated": {
+						"type": "boolean"
+					},
+					"isActivated": {
+						"type": "boolean"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					},
+					"bans": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Ban"
+						}
+					}
+				}
+			},
+			"Session": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"userId": {
+						"type": "number"
+					},
+					"user": {
+						"type": "object",
+						"$ref": "#/components/schemas/User"
+					},
+					"isActive": {
+						"type": "boolean"
+					},
+					"ip": {
+						"type": "string"
+					},
+					"location": {
+						"type": "string"
+					},
+					"userAgent": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				}
+			},
+			"Ban": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"userId": {
+						"type": "number"
+					},
+					"user": {
+						"type": "object",
+						"$ref": "#/components/schemas/User"
+					},
+					"appId": {
+						"type": "number"
+					},
+					"app": {
+						"type": "object",
+						"$ref": "#/components/schemas/App"
+					},
+					"untilAt": {
+						"type": "string"
+					},
+					"reason": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				}
+			},
+			"Role": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"title": {
+						"type": "string"
+					},
+					"prefix": {
+						"type": "string"
+					},
+					"accessLevel": {
+						"type": "number"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
