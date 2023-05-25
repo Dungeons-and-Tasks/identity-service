@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID                             uuid.UUID `gorm:"type:char(36);primaryKey;autoIncrement:false" json:"id"`
+	ID                             uuid.UUID `gorm:"primaryKey;type:char(36);autoIncrement:false" json:"id"`
 	Name                           string    `gorm:"size:50" json:"name"`
 	Email                          string    `gorm:"uniqueIndex;size:320" json:"email"`
 	Login                          string    `gorm:"uniqueIndex;size:50" json:"-"`
@@ -20,8 +20,8 @@ type User struct {
 	Picture                        string    `json:"picture"`
 	CreatedAt                      time.Time `json:"createdAt"`
 	UpdatedAt                      time.Time `json:"updatedAt"`
-	OAuths                         []OAuth   `json:"oauths,omitempty"`
-	Sessions                       []Session `json:"sessions,omitempty"`
+	OAuths                         []OAuth   `gorm:"constraint:OnDelete:CASCADE;" json:"oauths,omitempty"`
+	Sessions                       []Session `gorm:"constraint:OnDelete:CASCADE;" json:"sessions,omitempty"`
 }
 
 type SignUpUser struct {
