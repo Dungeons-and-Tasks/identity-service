@@ -30,6 +30,7 @@ type Config struct {
 	VK_AUTH_URI      string
 	VK_TOKEN_URI     string
 	VK_USER_INFO_URI string
+	VK_API_VERSION   string
 	VK_REDIRECT_URI  string
 	VK_CLIENT_SECRET string
 	VK_CLIENT_ID     string

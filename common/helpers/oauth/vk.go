@@ -18,11 +18,15 @@ type vkToken struct {
 }
 
 type vkUserInfo struct {
-	Id        string `json:"id"`
+	Id        uint   `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	HasPhoto  int    `json:"has_photo"` // 1 or 0
 	PhotoMax  string `json:"photo_max"`
+}
+
+type vkUserInfoResponse struct {
+	Response []vkUserInfo `json:"response"`
 }
 
 func GetVKAuthURI(cfg *config.Config) (string, error) {
@@ -45,8 +49,7 @@ func getVKToken(cfg *config.Config, code string) (*vkToken, error) {
 	var res vkToken
 	var req_err error
 	_, err := client.R().
-		SetHeader("Content-Type", "application/x-www-form-urlencoded").
-		SetFormData(map[string]string{
+		SetQueryParams(map[string]string{
 			"client_id":     cfg.VK_CLIENT_ID,
 			"client_secret": cfg.VK_CLIENT_SECRET,
 			"code":          code,
@@ -70,17 +73,18 @@ func GetVKUserInfo(cfg *config.Config, code string) (*OAuthUser, error) {
 	}
 
 	client := resty.New()
-	var res vkUserInfo
+	var res vkUserInfoResponse
 	var req_err error
 	_, err = client.R().
 		SetHeader("Authorization", "Bearer "+tokens.AccessToken).
-		SetError(&req_err).
-		SetResult(&res).
 		SetQueryParams(map[string]string{
-			"user_ids":  strconv.FormatUint(uint64(tokens.UserId), 10),
+			"user_id":   strconv.FormatUint(uint64(tokens.UserId), 10),
 			"fields":    "has_photo,photo_max",
 			"name_case": "nom",
+			"v":         cfg.VK_API_VERSION,
 		}).
+		SetError(&req_err).
+		SetResult(&res).
 		Get(cfg.VK_USER_INFO_URI)
 	if err != nil {
 		return nil, apperrors.NewInternal(err.Error())
@@ -88,14 +92,19 @@ func GetVKUserInfo(cfg *config.Config, code string) (*OAuthUser, error) {
 		return nil, apperrors.NewBadGateway(req_err.Error())
 	}
 
+	if len(res.Response) == 0 {
+		return nil, apperrors.NewNotFound("vk user not found")
+	}
+
+	vkUserInfo := res.Response[0]
 	oauthUser := &OAuthUser{
-		Id:    res.Id,
-		Name:  res.FirstName,
+		Id:    strconv.FormatUint(uint64(vkUserInfo.Id), 10),
+		Name:  vkUserInfo.FirstName,
 		Email: tokens.Email,
 	}
 
-	if res.HasPhoto == 1 {
-		oauthUser.Picture = res.PhotoMax
+	if vkUserInfo.HasPhoto == 1 {
+		oauthUser.Picture = vkUserInfo.PhotoMax
 	}
 
 	return oauthUser, nil

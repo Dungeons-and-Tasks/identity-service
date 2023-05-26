@@ -31,7 +31,7 @@ type SignUpUser struct {
 	PasswordConfirm string `json:"passwordConfirm" binding:"required"`
 }
 
-type OAuthUser struct {
+type AuthorizeOAuthUser struct {
 	Code string `json:"code" binding:"required"`
 }
 

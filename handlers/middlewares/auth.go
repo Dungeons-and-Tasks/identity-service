@@ -99,7 +99,7 @@ func (am *authMiddleware) MiddlewareFunc(ctx *gin.Context) {
 	}
 
 	var session models.Session
-	err = am.db.Preload("User").First(&session, "id = ?", uint(claims["sessionId"].(float64))).Error
+	err = am.db.Preload("User").First(&session, "id = ? AND user_id = ?", uint(claims["sessionId"].(float64)), claims["userId"]).Error
 	if err != nil {
 		err := apperrors.NewForbidden("session not found")
 		ctx.AbortWithStatusJSON(apperrors.HttpStatus(err), err)
@@ -131,26 +131,19 @@ func (am *authMiddleware) LoginHandler(ctx *gin.Context) {
 		return
 	}
 
-	useragent := ctx.GetHeader("User-Agent")
-	err = am.db.Where("user_agent LIKE ? AND user_id = ?", useragent, user.ID).Delete(&models.Session{}).Error
-	if err != nil {
-		err := apperrors.NewBadGateway("failed delete sessoin by User-Agent")
-		ctx.AbortWithStatusJSON(apperrors.HttpStatus(err), err)
-		return
-	}
-	am.createSession(ctx, &user, useragent)
+	am.createSessionWithDeletePrev(ctx, &user, ctx.GetHeader("User-Agent"))
 }
 
 func (am *authMiddleware) OAuthHandler(ctx *gin.Context) {
 	oauthServiceName := ctx.Param("oauthServiceName")
 
-	var oauth_uri string
+	var oauthUri string
 	var err error
 	switch oauthServiceName {
 	case "google":
-		oauth_uri, err = oauth.GetGoogleAuthURI(am.cfg)
+		oauthUri, err = oauth.GetGoogleAuthURI(am.cfg)
 	case "vk":
-		oauth_uri, err = oauth.GetVKAuthURI(am.cfg)
+		oauthUri, err = oauth.GetVKAuthURI(am.cfg)
 	default:
 		err = apperrors.NewInternal("invalid param oauthServiceName")
 	}
@@ -160,14 +153,14 @@ func (am *authMiddleware) OAuthHandler(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"oauth_uri": oauth_uri,
+		"oauthUri": oauthUri,
 	})
 }
 
 func (am *authMiddleware) OAuthCodeHandler(ctx *gin.Context) {
 	oauthServiceName := ctx.Param("oauthServiceName")
-	var oAuthUser models.OAuthUser
-	if err := ctx.BindJSON(&oAuthUser); err != nil {
+	var authorizeOAuthUser models.AuthorizeOAuthUser
+	if err := ctx.BindJSON(&authorizeOAuthUser); err != nil {
 		err := apperrors.NewBadRequest("incorrect structure")
 		ctx.AbortWithStatusJSON(apperrors.HttpStatus(err), err)
 		return
@@ -177,9 +170,9 @@ func (am *authMiddleware) OAuthCodeHandler(ctx *gin.Context) {
 	var err error
 	switch oauthServiceName {
 	case "google":
-		userInfo, err = oauth.GetGoogleUserInfo(am.cfg, oAuthUser.Code)
+		userInfo, err = oauth.GetGoogleUserInfo(am.cfg, authorizeOAuthUser.Code)
 	case "vk":
-		userInfo, err = oauth.GetVKUserInfo(am.cfg, oAuthUser.Code)
+		userInfo, err = oauth.GetVKUserInfo(am.cfg, authorizeOAuthUser.Code)
 	default:
 		err = apperrors.NewInternal("invalid param oauthServiceName")
 	}
@@ -190,7 +183,7 @@ func (am *authMiddleware) OAuthCodeHandler(ctx *gin.Context) {
 	}
 
 	var oauth models.OAuth
-	err = am.db.Where(&models.OAuth{OAuthServiceUserID: userInfo.Id}).Preload("User").First(&oauth).Error
+	err = am.db.Where("o_auth_service_user_id = ? AND o_auth_service_id = ?", userInfo.Id, oauthservices.OAuthServiceMap[oauthServiceName]).Preload("User").First(&oauth).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		uuid, err := uuid.NewRandom()
 		if err != nil {
@@ -205,6 +198,7 @@ func (am *authMiddleware) OAuthCodeHandler(ctx *gin.Context) {
 		}
 		user := models.User{
 			ID:       uuid,
+			Name:     userInfo.Name,
 			Email:    userInfo.Email,
 			Login:    userInfo.Email,
 			Password: hashedPassword,
@@ -239,14 +233,7 @@ func (am *authMiddleware) OAuthCodeHandler(ctx *gin.Context) {
 		return
 	}
 
-	useragent := ctx.GetHeader("User-Agent")
-	err = am.db.Where("user_agent LIKE ? AND user_id = ?", useragent, oauth.User.ID).Delete(&models.Session{}).Error
-	if err != nil {
-		err := apperrors.NewBadGateway("failed delete sessoin by User-Agent")
-		ctx.AbortWithStatusJSON(apperrors.HttpStatus(err), err)
-		return
-	}
-	am.createSession(ctx, oauth.User, useragent)
+	am.createSessionWithDeletePrev(ctx, oauth.User, ctx.GetHeader("User-Agent"))
 }
 
 func (am *authMiddleware) RefreshHandler(ctx *gin.Context) {
@@ -258,7 +245,7 @@ func (am *authMiddleware) RefreshHandler(ctx *gin.Context) {
 	}
 
 	var session models.Session
-	err = am.db.Preload("User").First(&session, "id = ?", uint(claims["sessionId"].(float64))).Error
+	err = am.db.Preload("User").First(&session, "id = ? AND user_id = ?", uint(claims["sessionId"].(float64)), claims["userId"]).Error
 	if err != nil {
 		err := apperrors.NewForbidden("session not found")
 		ctx.AbortWithStatusJSON(apperrors.HttpStatus(err), err)
@@ -289,6 +276,16 @@ func (am *authMiddleware) LogoutHandler(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func (am *authMiddleware) createSessionWithDeletePrev(ctx *gin.Context, user *models.User, useragent string) {
+	err := am.db.Where("user_agent LIKE ? AND user_id = ?", useragent, user.ID).Delete(&models.Session{}).Error
+	if err != nil {
+		err := apperrors.NewBadGateway("failed delete sessoin by User-Agent")
+		ctx.AbortWithStatusJSON(apperrors.HttpStatus(err), err)
+		return
+	}
+	am.createSession(ctx, user, useragent)
 }
 
 func (am *authMiddleware) createSession(ctx *gin.Context, user *models.User, useragent string) {
